@@ -119,15 +119,61 @@
 
     const FULL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${SHEET_TITLE}&range=${SHEET_RANGE}`;
 
-    // 🔊 Audio Elements Setup
-    const tickSound = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg'); // crisp click workaround
-    tickSound.volume = 0.5;
-    // Real mechanical tick backup URL
-    const altTick = new Audio('https://upload.wikimedia.org/wikipedia/commons/4/47/Typewriter_backspace.ogg');
-    altTick.volume = 0.4;
+    // 🔊 Synthesized Web Audio API Setup (Bypasses any external audio file issues)
+    let audioCtx = null;
 
-    const winSound = new Audio('https://upload.wikimedia.org/wikipedia/commons/e/e5/Ushuaia_Fanfare.ogg');
-    winSound.volume = 0.7;
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    // Generates a clean synthetic mechanical tick
+    function playTickSound() {
+        initAudio();
+        if (!audioCtx) return;
+
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime); // Pitch of tick
+        
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04); // Fast decay
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+    }
+
+    // Generates a synthetic retro video game win fanfare
+    function playWinSound() {
+        initAudio();
+        if (!audioCtx) return;
+
+        const notes = [440, 554, 659, 880]; // A major chord arpeggio
+        const noteDuration = 0.12;
+
+        notes.forEach((freq, index) => {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+
+            osc.type = 'triangle'; // Smooth retro sound
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (index * noteDuration));
+
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime + (index * noteDuration));
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (index * noteDuration) + noteDuration);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(audioCtx.currentTime + (index * noteDuration));
+            osc.stop(audioCtx.currentTime + (index * noteDuration) + noteDuration);
+        });
+    }
 
     let participants = [];
     let currentAngle = 0;
@@ -196,37 +242,32 @@
 
     function spinWheel() {
         if (participants.length === 0) return;
+        initAudio(); // Activate audio ecosystem on user click
+        
         document.getElementById('spinBtn').disabled = true;
         document.getElementById('winner').innerText = "";
-        
-        // Stop any playing win music from last round
-        winSound.pause();
-        winSound.currentTime = 0;
 
         const spinAngle = Math.random() * 1000 + 3000; 
-        const duration = 5000; // Extended to 5 seconds for better audio tension
+        const duration = 5000; 
         const start = performance.now();
 
         function animate(now) {
             const elapsed = now - start;
             const progress = Math.min(elapsed / duration, 1);
-            const easeOut = 1 - Math.pow(1 - progress, 4); // Smoother deceleration
+            const easeOut = 1 - Math.pow(1 - progress, 4); 
             
             currentAngle = (easeOut * spinAngle * Math.PI) / 180;
             drawWheel();
 
-            // 🔊 Handle Ticking Sound Sound Effect
+            // 🔊 Handle Ticking calculation
             const numSegments = participants.length;
             const arc = (2 * Math.PI) / numSegments;
             let normalizedAngle = (currentAngle % (2 * Math.PI));
-            // Calculating current slice under the 12 o'clock pointer (which is 1.5 * Math.PI rads back)
             let currentSegment = Math.floor((3.5 * Math.PI - normalizedAngle) / arc) % numSegments;
 
-            if (currentSegment !== lastSegmentIndex && progress < 0.95) {
+            if (currentSegment !== lastSegmentIndex && progress < 0.96) {
                 lastSegmentIndex = currentSegment;
-                // Play quick sound snippet
-                altTick.currentTime = 0;
-                altTick.play().catch(() => {}); // catch blocks prevent browser audio blocks
+                playTickSound(); // Trigger browser-generated tick
             }
 
             if (progress < 1) {
@@ -243,15 +284,14 @@
         const arc = (2 * Math.PI) / numSegments;
         let normalizedAngle = (currentAngle % (2 * Math.PI));
         
-        // Accurate calculation for top center pointer (12 o'clock)
         let index = Math.floor((3.5 * Math.PI - normalizedAngle) / arc) % numSegments;
         if (index < 0) index += numSegments;
         
         const winner = participants[index];
         document.getElementById('winner').innerText = `🎉 Winner: ${winner} 🎉`;
 
-        // 🔊 Play Winning Fanfare
-        winSound.play().catch(() => {});
+        // 🔊 Trigger browser-generated fanfare chord
+        playWinSound();
 
         try {
             const sendUrl = `${APPS_SCRIPT_URL}?winner=${encodeURIComponent(winner)}`;
@@ -264,7 +304,7 @@
             participants.splice(index, 1); 
             drawWheel();                   
             document.getElementById('spinBtn').disabled = false; 
-        }, 3500); // Extended slightly so win sound plays nicely before name disappears
+        }, 3500); 
     }
 
     loadNames();
