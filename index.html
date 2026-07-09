@@ -5,12 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Our Custom Raffle Wheel</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f9; }
-        .container { margin-top: 50px; }
-        #canvas { border: 4px solid #333; border-radius: 50%; background: white; }
-        button { padding: 10px 20px; font-size: 18px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; }
-        button:hover { background: #218838; }
-        #winner { font-size: 24px; color: #dc3545; font-weight: bold; margin-top: 20px; }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            text-align: center; 
+            background: linear-gradient(135deg, #1e1e2f 0%, #111119 100%); 
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container { 
+            background: rgba(255, 255, 255, 0.03);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+        #canvas { 
+            border: 8px solid #222; 
+            border-radius: 50%; 
+            background: #222; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.6);
+        }
+        button { 
+            padding: 12px 30px; 
+            font-size: 18px; 
+            font-weight: bold;
+            letter-spacing: 1px;
+            background: #28a745; 
+            color: white; 
+            border: none; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            margin-top: 25px; 
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+        button:hover { 
+            background: #218838; 
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(40, 167, 69, 0.6);
+        }
+        button:disabled {
+            background: #555;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+        #winner { 
+            font-size: 26px; 
+            color: #ffc107; 
+            font-weight: bold; 
+            margin-top: 25px; 
+            min-height: 35px;
+            text-shadow: 0 0 15px rgba(255, 193, 7, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -24,27 +83,23 @@
 </div>
 
 <script>
-    // 💾 Your Google Sheet Details
     const SHEET_ID = '1zHX7DCo7cVMNnNZMHtJ97ykat_diMKGHRO_OU6thV6g';
     const SHEET_TITLE = 'Sheet1'; 
     const SHEET_RANGE = 'A2:A1000'; 
     
-    // 🔗 Reliable Direct Export URL Formatter
+    // ✅ Added your live Apps Script Web App URL
+    const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/hapinoy.com/s/AKfycbxrtvsZCXZ5nX490Yjn2aHhvqDVHvShbPIbsE6VNIFh7pSnfPpIvhd-kS0rFX-YtbjzuA/exec';
+
     const FULL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${SHEET_TITLE}&range=${SHEET_RANGE}`;
 
     let participants = [];
     let currentAngle = 0;
 
-    // Fetch names from Google Sheet on load
     async function loadNames() {
         try {
             const response = await fetch(FULL_URL);
             const data = await response.text();
-            
-            // Clean up CSV data into a clean array of names
-            participants = data.split('\n')
-                               .map(name => name.replace(/['"]+/g, '').trim())
-                               .filter(Boolean);
+            participants = data.split('\n').map(name => name.replace(/['"]+/g, '').trim()).filter(Boolean);
             
             if (participants.length === 0) {
                 alert("No names found in the Google Sheet!");
@@ -63,24 +118,28 @@
 
     function drawWheel() {
         const numSegments = participants.length;
-        if (numSegments === 0) return;
-        const arc = (2 * Math.PI) / numSegments;
-
         ctx.clearRect(0, 0, size, size);
+
+        if (numSegments === 0) {
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText("No names left!", center, center);
+            return;
+        }
+
+        const arc = (2 * Math.PI) / numSegments;
 
         participants.forEach((name, i) => {
             const angle = currentAngle + i * arc;
-            
-            // Draw slice
             ctx.beginPath();
-            ctx.fillStyle = i % 2 === 0 ? '#4e73df' : '#1cc88a'; // Alternate colors
+            ctx.fillStyle = i % 2 === 0 ? '#4e73df' : '#1cc88a'; 
             ctx.moveTo(center, center);
             ctx.arc(center, center, center - 10, angle, angle + arc);
             ctx.lineTo(center, center);
             ctx.fill();
             ctx.stroke();
 
-            // Draw text
             ctx.save();
             ctx.fillStyle = 'white';
             ctx.font = 'bold 14px Arial';
@@ -91,9 +150,8 @@
             ctx.restore();
         });
         
-        // Draw the center pin indicator
         ctx.beginPath();
-        ctx.fillStyle = '#333';
+        ctx.fillStyle = '#ffffff';
         ctx.arc(center, center, 20, 0, 2 * Math.PI);
         ctx.fill();
     }
@@ -103,15 +161,13 @@
         document.getElementById('spinBtn').disabled = true;
         document.getElementById('winner').innerText = "";
         
-        const spinAngle = Math.random() * 1000 + 2000; // Random big rotation
-        const duration = 4000; // 4 seconds spin
+        const spinAngle = Math.random() * 1000 + 2000; 
+        const duration = 4000; 
         const start = performance.now();
 
         function animate(now) {
             const elapsed = now - start;
             const progress = Math.min(elapsed / duration, 1);
-            
-            // Ease out cubic effect (slow down gradually)
             const easeOut = 1 - Math.pow(1 - progress, 3);
             
             currentAngle = (easeOut * spinAngle * Math.PI) / 180;
@@ -121,24 +177,40 @@
                 requestAnimationFrame(animate);
             } else {
                 determineWinner();
-                document.getElementById('spinBtn').disabled = false;
             }
         }
         requestAnimationFrame(animate);
     }
 
-    function determineWinner() {
+    async function determineWinner() {
         const numSegments = participants.length;
         const arc = (2 * Math.PI) / numSegments;
-        
         let normalizedAngle = (currentAngle % (2 * Math.PI));
         let index = Math.floor((2 * Math.PI - normalizedAngle) / arc) % numSegments;
         
         const winner = participants[index];
         document.getElementById('winner').innerText = `🎉 Winner: ${winner} 🎉`;
+
+        // Save winner to your Google Sheet back-end
+        try {
+            fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ winner: winner })
+            });
+        } catch (e) {
+            console.error("Error saving winner to sheet:", e);
+        }
+
+        // Wait 2.5 seconds, then slice them out of the live wheel and reset button
+        setTimeout(() => {
+            participants.splice(index, 1); 
+            drawWheel();                   
+            document.getElementById('spinBtn').disabled = false; 
+        }, 2500);
     }
 
-    // Initialize
     loadNames();
 </script>
 
