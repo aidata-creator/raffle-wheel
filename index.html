@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Custom Raffle Wheel</title>
+    <title>AI CAN WORK DRAW</title>
     <style>
         body { 
             font-family: 'Segoe UI', Arial, sans-serif; 
@@ -99,7 +99,8 @@
 <body>
 
 <div class="container">
-    <h1>🎟️ Live Raffle Wheel 🎟️</h1>
+    <!--  Changed title here -->
+    <h1>🎟️ AI CAN WORK DRAW 🎟️</h1>
     
     <div class="wheel-wrapper">
         <div class="arrow"></div>
@@ -119,7 +120,6 @@
 
     const FULL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${SHEET_TITLE}&range=${SHEET_RANGE}`;
 
-    // 🔊 Synthesized Web Audio API Setup (Bypasses any external audio file issues)
     let audioCtx = null;
 
     function initAudio() {
@@ -128,7 +128,6 @@
         }
     }
 
-    // Generates a clean synthetic mechanical tick
     function playTickSound() {
         initAudio();
         if (!audioCtx) return;
@@ -137,10 +136,10 @@
         let gain = audioCtx.createGain();
         
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(600, audioCtx.currentTime); // Pitch of tick
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime); 
         
         gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04); // Fast decay
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04); 
 
         osc.connect(gain);
         gain.connect(audioCtx.destination);
@@ -149,19 +148,18 @@
         osc.stop(audioCtx.currentTime + 0.05);
     }
 
-    // Generates a synthetic retro video game win fanfare
     function playWinSound() {
         initAudio();
         if (!audioCtx) return;
 
-        const notes = [440, 554, 659, 880]; // A major chord arpeggio
+        const notes = [440, 554, 659, 880]; 
         const noteDuration = 0.12;
 
         notes.forEach((freq, index) => {
             let osc = audioCtx.createOscillator();
             let gain = audioCtx.createGain();
 
-            osc.type = 'triangle'; // Smooth retro sound
+            osc.type = 'triangle'; 
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (index * noteDuration));
 
             gain.gain.setValueAtTime(0.2, audioCtx.currentTime + (index * noteDuration));
@@ -242,7 +240,7 @@
 
     function spinWheel() {
         if (participants.length === 0) return;
-        initAudio(); // Activate audio ecosystem on user click
+        initAudio(); 
         
         document.getElementById('spinBtn').disabled = true;
         document.getElementById('winner').innerText = "";
@@ -259,7 +257,6 @@
             currentAngle = (easeOut * spinAngle * Math.PI) / 180;
             drawWheel();
 
-            // 🔊 Handle Ticking calculation
             const numSegments = participants.length;
             const arc = (2 * Math.PI) / numSegments;
             let normalizedAngle = (currentAngle % (2 * Math.PI));
@@ -267,7 +264,7 @@
 
             if (currentSegment !== lastSegmentIndex && progress < 0.96) {
                 lastSegmentIndex = currentSegment;
-                playTickSound(); // Trigger browser-generated tick
+                playTickSound(); 
             }
 
             if (progress < 1) {
@@ -290,7 +287,6 @@
         const winner = participants[index];
         document.getElementById('winner').innerText = `🎉 Winner: ${winner} 🎉`;
 
-        // 🔊 Trigger browser-generated fanfare chord
         playWinSound();
 
         try {
