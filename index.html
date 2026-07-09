@@ -32,15 +32,11 @@
             letter-spacing: 2px;
             text-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
-        
-        /* 🎯 Wrapper to position the wheel and the arrow */
         .wheel-wrapper {
             position: relative;
             display: inline-block;
             margin-top: 20px;
         }
-
-        /* 🏹 The Visual Arrow Pointer */
         .arrow {
             position: absolute;
             top: -15px;
@@ -50,11 +46,10 @@
             height: 0;
             border-left: 20px solid transparent;
             border-right: 20px solid transparent;
-            border-top: 35px solid #ffc107; /* Bright gold arrow pointing down */
+            border-top: 35px solid #ffc107;
             filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.5));
             z-index: 10;
         }
-
         #canvas { 
             border: 8px solid #222; 
             border-radius: 50%; 
@@ -99,14 +94,11 @@
 <body>
 
 <div class="container">
-    <!--  Changed title here -->
     <h1>🎟️ AI CAN WORK DRAW 🎟️</h1>
-    
     <div class="wheel-wrapper">
         <div class="arrow"></div>
         <canvas id="canvas" width="500" height="500"></canvas>
     </div>
-    
     <br>
     <button id="spinBtn" onclick="spinWheel()">SPIN THE WHEEL</button>
     <div id="winner"></div>
@@ -131,19 +123,14 @@
     function playTickSound() {
         initAudio();
         if (!audioCtx) return;
-
         let osc = audioCtx.createOscillator();
         let gain = audioCtx.createGain();
-        
         osc.type = 'sine';
         osc.frequency.setValueAtTime(600, audioCtx.currentTime); 
-        
         gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04); 
-
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        
         osc.start();
         osc.stop(audioCtx.currentTime + 0.05);
     }
@@ -151,23 +138,17 @@
     function playWinSound() {
         initAudio();
         if (!audioCtx) return;
-
         const notes = [440, 554, 659, 880]; 
         const noteDuration = 0.12;
-
         notes.forEach((freq, index) => {
             let osc = audioCtx.createOscillator();
             let gain = audioCtx.createGain();
-
             osc.type = 'triangle'; 
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (index * noteDuration));
-
             gain.gain.setValueAtTime(0.2, audioCtx.currentTime + (index * noteDuration));
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (index * noteDuration) + noteDuration);
-
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-
             osc.start(audioCtx.currentTime + (index * noteDuration));
             osc.stop(audioCtx.currentTime + (index * noteDuration) + noteDuration);
         });
@@ -182,7 +163,6 @@
             const response = await fetch(FULL_URL);
             const data = await response.text();
             participants = data.split('\n').map(name => name.replace(/['"]+/g, '').trim()).filter(Boolean);
-            
             if (participants.length === 0) {
                 alert("No names found in the Google Sheet!");
             } else {
@@ -201,7 +181,6 @@
     function drawWheel() {
         const numSegments = participants.length;
         ctx.clearRect(0, 0, size, size);
-
         if (numSegments === 0) {
             ctx.fillStyle = 'white';
             ctx.font = 'bold 20px Arial';
@@ -209,9 +188,7 @@
             ctx.fillText("No names left!", center, center);
             return;
         }
-
         const arc = (2 * Math.PI) / numSegments;
-
         participants.forEach((name, i) => {
             const angle = currentAngle + i * arc;
             ctx.beginPath();
@@ -221,7 +198,6 @@
             ctx.lineTo(center, center);
             ctx.fill();
             ctx.stroke();
-
             ctx.save();
             ctx.fillStyle = 'white';
             ctx.font = 'bold 14px Arial';
@@ -231,7 +207,6 @@
             ctx.fillText(name, center - 30, 5);
             ctx.restore();
         });
-        
         ctx.beginPath();
         ctx.fillStyle = '#ffffff';
         ctx.arc(center, center, 20, 0, 2 * Math.PI);
@@ -241,32 +216,25 @@
     function spinWheel() {
         if (participants.length === 0) return;
         initAudio(); 
-        
         document.getElementById('spinBtn').disabled = true;
         document.getElementById('winner').innerText = "";
-
         const spinAngle = Math.random() * 1000 + 3000; 
         const duration = 5000; 
         const start = performance.now();
-
         function animate(now) {
             const elapsed = now - start;
             const progress = Math.min(elapsed / duration, 1);
             const easeOut = 1 - Math.pow(1 - progress, 4); 
-            
             currentAngle = (easeOut * spinAngle * Math.PI) / 180;
             drawWheel();
-
             const numSegments = participants.length;
             const arc = (2 * Math.PI) / numSegments;
             let normalizedAngle = (currentAngle % (2 * Math.PI));
             let currentSegment = Math.floor((3.5 * Math.PI - normalizedAngle) / arc) % numSegments;
-
             if (currentSegment !== lastSegmentIndex && progress < 0.96) {
                 lastSegmentIndex = currentSegment;
                 playTickSound(); 
             }
-
             if (progress < 1) {
                 requestAnimationFrame(animate);
             } else {
@@ -280,22 +248,17 @@
         const numSegments = participants.length;
         const arc = (2 * Math.PI) / numSegments;
         let normalizedAngle = (currentAngle % (2 * Math.PI));
-        
         let index = Math.floor((3.5 * Math.PI - normalizedAngle) / arc) % numSegments;
         if (index < 0) index += numSegments;
-        
         const winner = participants[index];
         document.getElementById('winner').innerText = `🎉 Winner: ${winner} 🎉`;
-
         playWinSound();
-
         try {
             const sendUrl = `${APPS_SCRIPT_URL}?winner=${encodeURIComponent(winner)}`;
             fetch(sendUrl, { method: 'GET', mode: 'no-cors' });
         } catch (e) {
             console.error("Error saving winner to sheet:", e);
         }
-
         setTimeout(() => {
             participants.splice(index, 1); 
             drawWheel();                   
