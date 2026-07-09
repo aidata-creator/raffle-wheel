@@ -24,13 +24,13 @@
 </div>
 
 <script>
-    // ⚠️ REPLACE THESE WITH YOUR OWN SHEET DETAILS
+    // 💾 Your Google Sheet Details
     const SHEET_ID = '1zHX7DCo7cVMNnNZMHtJ97ykat_diMKGHRO_OU6thV6g';
-    const SHEET_TITLE = 'Sheet1'; // Name of your tab
-    const SHEET_RANGE = 'A2:A1000'; // Adjust based on your list size
+    const SHEET_TITLE = 'Sheet1'; 
+    const SHEET_RANGE = 'A2:A1000'; 
     
-    // Construct the Google Sheets CSV export URL (the easiest way to fetch data without API keys)
-    const FULL_URL = `https://docs.google.com/spreadsheets/d/${1zHX7DCo7cVMNnNZMHtJ97ykat_diMKGHRO_OU6thV6g}/gviz/tq?tqx=out:csv&sheet=${Sheet1}&range=${'A2:A1000'}`;
+    // ✅ FIXED: Using the variable names correctly inside the template string
+    const FULL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_TITLE}&range=${SHEET_RANGE}`;
 
     let participants = [];
     let currentAngle = 0;
@@ -61,6 +61,7 @@
 
     function drawWheel() {
         const numSegments = participants.length;
+        if (numSegments === 0) return;
         const arc = (2 * Math.PI) / numSegments;
 
         ctx.clearRect(0, 0, size, size);
@@ -96,6 +97,7 @@
     }
 
     function spinWheel() {
+        if (participants.length === 0) return;
         document.getElementById('spinBtn').disabled = true;
         document.getElementById('winner').innerText = "";
         
@@ -127,12 +129,9 @@
         const numSegments = participants.length;
         const arc = (2 * Math.PI) / numSegments;
         
-        // Normalize angle to find which segment lands at the pointer (top/right depending on setup)
-        // In standard canvas, 0 radians is at 3 o'clock.
         let normalizedAngle = (currentAngle % (2 * Math.PI));
         let index = Math.floor((2 * Math.PI - normalizedAngle) / arc) % numSegments;
         
-        // Visual indicator fix if needed, but this calculates based on rotation
         const winner = participants[index];
         document.getElementById('winner').innerText = `🎉 Winner: ${winner} 🎉`;
     }
