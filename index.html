@@ -29,8 +29,8 @@
     const SHEET_TITLE = 'Sheet1'; 
     const SHEET_RANGE = 'A2:A1000'; 
     
-    // ✅ FIXED: Using the variable names correctly inside the template string
-    const FULL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_TITLE}&range=${SHEET_RANGE}`;
+    // 🔗 Reliable Direct Export URL Formatter
+    const FULL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${SHEET_TITLE}&range=${SHEET_RANGE}`;
 
     let participants = [];
     let currentAngle = 0;
@@ -42,7 +42,9 @@
             const data = await response.text();
             
             // Clean up CSV data into a clean array of names
-            participants = data.split('\n').map(name => name.replace(/['"]+/g, '').trim()).filter(Boolean);
+            participants = data.split('\n')
+                               .map(name => name.replace(/['"]+/g, '').trim())
+                               .filter(Boolean);
             
             if (participants.length === 0) {
                 alert("No names found in the Google Sheet!");
