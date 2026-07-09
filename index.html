@@ -87,8 +87,8 @@
     const SHEET_TITLE = 'Sheet1'; 
     const SHEET_RANGE = 'A2:A1000'; 
     
-    // ✅ Added your live Apps Script Web App URL
-    const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/hapinoy.com/s/AKfycbxrtvsZCXZ5nX490Yjn2aHhvqDVHvShbPIbsE6VNIFh7pSnfPpIvhd-kS0rFX-YtbjzuA/exec';
+    // ✅ Updated with your newest deployment link
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw40oM8d1mjeQajo5yoI8wjkHtioXgm6qkamc-gUewnog9HH7K6D0r078iZe9sDfxNE6Q/exec';
 
     const FULL_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${SHEET_TITLE}&range=${SHEET_RANGE}`;
 
@@ -191,14 +191,10 @@
         const winner = participants[index];
         document.getElementById('winner').innerText = `🎉 Winner: ${winner} 🎉`;
 
-        // Save winner to your Google Sheet back-end
+        // ✅ FIXED: Sending data via GET request URL params (?winner=Name) to match your doGet function
         try {
-            fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ winner: winner })
-            });
+            const sendUrl = `${APPS_SCRIPT_URL}?winner=${encodeURIComponent(winner)}`;
+            fetch(sendUrl, { method: 'GET', mode: 'no-cors' });
         } catch (e) {
             console.error("Error saving winner to sheet:", e);
         }
